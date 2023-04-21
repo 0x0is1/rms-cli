@@ -1,13 +1,27 @@
 import java.sql.*;
 
 public class App {
+    private static final int ADMIN_UID = 1234;
+    private static final String ADMIN_PASS = "password";
+    private static final String END = "\u001B[0m";
+    private static final String WARNING = "\u001B[33m";
+    private static final String ERROR = "\u001B[31m";
+    private static final String MESSAGE = "\u001B[32m";
+    private static final String INFO = "\u001B[37m";
+    private static final String DETAIL = "\u001B[34m";
+
+    private static void clear() {
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
+    }
 
     private static void createTable(Connection conn) throws SQLException {
         String sql = "CREATE TABLE IF NOT EXISTS users ("
                 + "uid INTEGER PRIMARY KEY,"
                 + "name TEXT NOT NULL,"
                 + "section TEXT NOT NULL,"
-                + "course TEXT NOT NULL"
+                + "course TEXT NOT NULL,"
+                + "password TEXT NOT NULL"
                 + ");";
 
         Statement stmt = conn.createStatement();
@@ -29,82 +43,83 @@ public class App {
 
     private static void adminMenu(Connection conn) throws SQLException {
         while (true) {
-            System.out.println("Admin Menu:");
-            System.out.println("1. Add User");
-            System.out.println("2. Delete User");
-            System.out.println("3. Check Requests");
-            System.out.println("4. Log out");
+            System.out.println(INFO + "[*] Admin Menu:" + END);
+            System.out.println(DETAIL + "[1] Add User" + END);
+            System.out.println(DETAIL + "[2] Delete User" + END);
+            System.out.println(DETAIL + "[3] Check Requests" + END);
+            System.out.println(DETAIL + "[4] Log out" + END);
 
             int choice = Integer.parseInt(System.console().readLine());
+            int uid = 0;
+            switch (choice) {
+                case 1:
+                    System.out.println(DETAIL + "[*] Enter UID:" + END);
+                    uid = Integer.parseInt(System.console().readLine());
+                    System.out.println(DETAIL + "[*] Enter Name:" + END);
+                    String name = System.console().readLine();
+                    System.out.println(DETAIL + "[*] Enter Section:" + END);
+                    String section = System.console().readLine();
+                    System.out.println(DETAIL + "[*] Enter Course:" + END);
+                    String course = System.console().readLine();
+                    System.out.println(DETAIL + "[*] Enter password:" + END);
+                    String password = System.console().readLine();
+                    addUser(conn, uid, name, section, course, password);
+                    break;
 
-            if (choice == 1) {
-                System.out.println("Enter UID:");
-                int uid = Integer.parseInt(System.console().readLine());
-                System.out.println("Enter Name:");
-                String name = System.console().readLine();
-                System.out.println("Enter Section:");
-                String section = System.console().readLine();
-                System.out.println("Enter Course:");
-                String course = System.console().readLine();
+                case 2:
+                    System.out.println("[*] Enter UID:" + END);
+                    uid = Integer.parseInt(System.console().readLine());
+                    deleteUser(conn, uid);
+                    break;
 
-                addUser(conn, uid, name, section, course);
+                case 3:
+                    ResultSet rs = checkRequests(conn);
+                    while (rs.next()) {
+                        System.out.println(WARNING + "[!] Request ID: " + rs.getInt("id") + END);
+                        System.out.println(MESSAGE + "[*] UID: " + rs.getInt("uid") + END);
+                        System.out.println(MESSAGE + "[*] Title: " + rs.getString("title") + END);
+                        System.out.println(MESSAGE + "[*] Description: " + rs.getString("description") + END);
+                        System.out.println(MESSAGE + "[*] Status: " + rs.getString("status") + END);
+                        System.out.println(MESSAGE + "[*] Reply: " + rs.getString("reply") + END);
+                        System.out.println();
+                    }
+                    rs.close();
+                    System.out.println(INFO + "[!] Enter Request ID to reply to, or 0 to return to menu:" + END);
+                    int requestID = Integer.parseInt(System.console().readLine());
+                    if (requestID != 0) {
+                        System.out.println(DETAIL + "[*] Enter reply:" + END);
+                        String reply = System.console().readLine();
+                        replyToRequest(conn, requestID, reply);
+                    }
+                    break;
 
-            } else if (choice == 2) {
-                System.out.println("Enter UID:");
-                int uid = Integer.parseInt(System.console().readLine());
+                case 4:
+                    break;
 
-                deleteUser(conn, uid);
-
-            } else if (choice == 3) {
-                ResultSet rs = checkRequests(conn);
-
-                while (rs.next()) {
-                    System.out.println("Request ID: " + rs.getInt("id"));
-                    System.out.println("UID: " + rs.getInt("uid"));
-                    System.out.println("Title: " + rs.getString("title"));
-                    System.out.println("Description: " + rs.getString("description"));
-                    System.out.println("Status: " + rs.getString("status"));
-                    System.out.println("Reply: " + rs.getString("reply"));
-                    System.out.println();
-                }
-
-                rs.close();
-
-                System.out.println("Enter Request ID to reply to, or 0 to return to menu:");
-                int requestID = Integer.parseInt(System.console().readLine());
-
-                if (requestID != 0) {
-                    System.out.println("Enter reply:");
-                    String reply = System.console().readLine();
-
-                    replyToRequest(conn, requestID, reply);
-                }
-
-            } else if (choice == 4) {
-                break;
-
-            } else {
-                System.out.println("Invalid choice. Please try again.");
+                default:
+                    System.out.println(ERROR + "[-] Invalid choice. Please try again." + END);
             }
         }
     }
 
-    private static void addUser(Connection conn, int uid, String name, String section, String course) throws SQLException {
-        String sql = "INSERT INTO users (uid, name, section, course) VALUES (?, ?, ?, ?)";
+    private static void addUser(Connection conn, int uid, String name, String section, String course, String password)
+            throws SQLException {
+        String sql = "INSERT INTO users (uid, name, section, course, password) VALUES (?, ?, ?, ?, ?)";
 
         PreparedStatement pstmt = conn.prepareStatement(sql);
         pstmt.setInt(1, uid);
         pstmt.setString(2, name);
         pstmt.setString(3, section);
         pstmt.setString(4, course);
+        pstmt.setString(5, password);
 
         pstmt.executeUpdate();
         pstmt.close();
 
-        System.out.println("User added.");
+        System.out.println(MESSAGE + "[+] User added." + END);
     }
 
-private static void deleteUser(Connection conn, int uid) throws SQLException {
+    private static void deleteUser(Connection conn, int uid) throws SQLException {
         String sql = "DELETE FROM users WHERE uid = ?";
 
         PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -113,7 +128,7 @@ private static void deleteUser(Connection conn, int uid) throws SQLException {
         pstmt.executeUpdate();
         pstmt.close();
 
-        System.out.println("User deleted.");
+        System.out.println(MESSAGE + "[+] User deleted." + END);
     }
 
     private static ResultSet checkRequests(Connection conn) throws SQLException {
@@ -134,7 +149,7 @@ private static void deleteUser(Connection conn, int uid) throws SQLException {
         pstmt.executeUpdate();
         pstmt.close();
 
-        System.out.println("Request updated.");
+        System.out.println(MESSAGE + "[+] Request updated." + END);
     }
 
     private static boolean checkUserExists(Connection conn, int uid) throws SQLException {
@@ -155,41 +170,42 @@ private static void deleteUser(Connection conn, int uid) throws SQLException {
 
     private static void studentMenu(Connection conn, int uid) throws SQLException {
         while (true) {
-            System.out.println("Student Menu:");
-            System.out.println("1. Log Request");
-            System.out.println("2. Check Request Status");
-            System.out.println("3. Log out");
+            System.out.println(WARNING + "[!] Student Menu:" + END);
+            System.out.println(DETAIL + "[1] Log Request" + END);
+            System.out.println(DETAIL + "[2] Check Request Status" + END);
+            System.out.println(DETAIL + "[3] Log out" + END);
 
             int choice = Integer.parseInt(System.console().readLine());
 
-            if (choice == 1) {
-                System.out.println("Enter Title:");
-                String title = System.console().readLine();
-                System.out.println("Enter Description:");
-                String description = System.console().readLine();
+            switch (choice) {
+                case 1:
+                    System.out.println(DETAIL + "[*] Enter Title:" + END);
+                    String title = System.console().readLine();
+                    System.out.println(DETAIL + "[*] Enter Description:" + END);
+                    String description = System.console().readLine();
+                    logRequest(conn, uid, title, description);
+                    break;
 
-                logRequest(conn, uid, title, description);
+                case 2:
+                    ResultSet rs = checkRequestStatus(conn, uid);
+                    while (rs.next()) {
+                        System.out.println(WARNING + "[!] Request ID: " + rs.getInt("id") + END);
+                        System.out.println(MESSAGE + "[*] UID: " + rs.getInt("uid") + END);
+                        System.out.println(MESSAGE + "[*] Title: " + rs.getString("title") + END);
+                        System.out.println(MESSAGE + "[*] Description: " + rs.getString("description") + END);
+                        System.out.println(MESSAGE + "[*] Status: " + rs.getString("status") + END);
+                        System.out.println(MESSAGE + "[*] Reply: " + rs.getString("reply") + END);
+                        System.out.println();
+                    }
+                    rs.close();
+                    break;
 
-            } else if (choice == 2) {
-                ResultSet rs = checkRequestStatus(conn, uid);
+                case 3:
+                    break;
 
-                while (rs.next()) {
-                    System.out.println("Request ID: " + rs.getInt("id"));
-                    System.out.println("UID: " + rs.getInt("uid"));
-                    System.out.println("Title: " + rs.getString("title"));
-                    System.out.println("Description: " + rs.getString("description"));
-                    System.out.println("Status: " + rs.getString("status"));
-                    System.out.println("Reply: " + rs.getString("reply"));
-                    System.out.println();
-                }
-
-                rs.close();
-
-            } else if (choice == 3) {
-                break;
-
-            } else {
-                System.out.println("Invalid choice. Please try again.");
+                default:
+                    System.out.println(ERROR + "[-] Invalid choice. Please try again." + END);
+                    break;
             }
         }
     }
@@ -205,7 +221,7 @@ private static void deleteUser(Connection conn, int uid) throws SQLException {
         pstmt.executeUpdate();
         pstmt.close();
 
-        System.out.println("Request logged.");
+        System.out.println(INFO + "[+] Request logged." + END);
     }
 
     private static ResultSet checkRequestStatus(Connection conn, int uid) throws SQLException {
@@ -217,50 +233,67 @@ private static void deleteUser(Connection conn, int uid) throws SQLException {
         return pstmt.executeQuery();
     }
 
-public static void main(String[] args) {
+    public static void main(String[] args) {
         Connection conn = null;
-
         try {
+            int adminID = 0;
+            String pass = null;
             // Class.forName("org.sqlite.JDBC");
-            conn = DriverManager.getConnection("jdbc:sqlite:/home/whitehats/discord-bot/javaproject2/database/university.db");
+            conn = DriverManager
+                    .getConnection("jdbc:sqlite:/home/whitehats/discord-bot/javaproject2/database/university.db");
 
             createTable(conn);
 
             while (true) {
-                System.out.print("\033[H\033[2J");
-                System.out.flush();
-                System.out.println("Welcome to the University System.");
-                System.out.println("1. Admin Login");
-                System.out.println("2. Student Login");
-                System.out.println("3. Exit");
+                System.out.println(WARNING + "[*] Welcome to the University System.");
+                System.out.println(DETAIL + "[1] Admin Login" + END);
+                System.out.println(DETAIL + "[2] Student Login" + END);
+                System.out.println(DETAIL + "[3] Exit" + END);
 
                 int choice = Integer.parseInt(System.console().readLine());
 
-                if (choice == 1) {
-                    System.out.println("Enter Admin ID:");
-                    int adminID = Integer.parseInt(System.console().readLine());
+                switch (choice) {
+                    case 1:
+                        System.out.println(INFO + "[*] Enter Admin ID:" + END);
+                        try {
+                            adminID = Integer.parseInt(System.console().readLine());
+                        } catch (Exception e) {
+                            System.out.println(ERROR + "[-] Admin ID should be integer only" + END);
+                            continue;
+                        }
+                        System.out.println(INFO + "[*] Enter Admin password:" + END);
 
-                    if (adminID == 1234) { // Replace with actual admin ID
-                        adminMenu(conn);
-                    } else {
-                        System.out.println("Invalid Admin ID. Please try again.");
-                    }
+                        try {
+                            pass = System.console().readLine();
 
-                } else if (choice == 2) {
-                    System.out.println("Enter Student ID:");
-                    int studentID = Integer.parseInt(System.console().readLine());
+                        } catch (Exception e) {
+                            System.out.println(ERROR + "[-] Admin password should be string only" + END);
+                            continue;
+                        }
 
-                    if (checkUserExists(conn, studentID)) {
-                        studentMenu(conn, studentID);
-                    } else {
-                        System.out.println("User not found. Please try again.");
-                    }
+                        if (adminID == ADMIN_UID && pass.equals(ADMIN_PASS)) {
+                            adminMenu(conn);
+                        } else {
+                            System.out.println(ERROR + "[-] Invalid Admin ID. Please try again." + END);
+                        }
+                        break;
 
-                } else if (choice == 3) {
-                    break;
+                    case 2:
+                        System.out.println(INFO + "[*] Enter Student ID:" + END);
+                        int studentID = Integer.parseInt(System.console().readLine());
 
-                } else {
-                    System.out.println("Invalid choice. Please try again.");
+                        if (checkUserExists(conn, studentID)) {
+                            studentMenu(conn, studentID);
+                        } else {
+                            System.out.println(ERROR + "[-] User not found. Please try again." + END);
+                        }
+                        break;
+
+                    case 3:
+                        break;
+
+                    default:
+                        System.out.println(ERROR + "[-] Invalid choice. Please try again." + END);
                 }
             }
 
