@@ -17,13 +17,12 @@ class Constants {
 
 public class App extends MenuHandler{
     public static void main(String[] args) {
+        Constants.clear();
         Connection conn = null;
         try {
             int adminID = 0;
             String pass = null;
-            // Class.forName("org.sqlite.JDBC");
-            conn = DriverManager
-                    .getConnection("jdbc:sqlite:./database/university.db");
+            conn = DriverManager.getConnection("jdbc:sqlite:./database/university.db");
 
             createTable(conn);
             boolean startMenu = true;
@@ -38,10 +37,12 @@ public class App extends MenuHandler{
 
                 switch (choice) {
                     case 1:
+                        Constants.clear();
                         System.out.println(Constants.INFO + "[*] Enter Admin ID:" + Constants.END);
                         try {
                             adminID = Integer.parseInt(System.console().readLine());
                         } catch (Exception e) {
+                            Constants.clear();
                             System.out.println(Constants.ERROR + "[-] Admin ID should be integer only" + Constants.END);
                             continue;
                         }
@@ -51,38 +52,53 @@ public class App extends MenuHandler{
                             pass = System.console().readLine();
 
                         } catch (Exception e) {
+                            Constants.clear();
                             System.out.println(Constants.ERROR + "[-] Admin password should be string only" + Constants.END);
                             continue;
                         }
 
                         if (adminID == Constants.ADMIN_UID && pass.equals(Constants.ADMIN_PASS)) {
+                            Constants.clear();
                             adminMenu(conn);
                         } else {
+                            Constants.clear();
                             System.out.println(Constants.ERROR + "[-] Invalid Admin ID. Please try again." + Constants.END);
                         }
                         break;
 
                     case 2:
+                        Constants.clear();
                         System.out.println(Constants.INFO + "[*] Enter Student ID:" + Constants.END);
                         int studentID = Integer.parseInt(System.console().readLine());
 
                         if (checkUserExists(conn, studentID)) {
-                            studentMenu(conn, studentID);
+                            System.out.println(Constants.INFO + "[*] Enter Student password:" + Constants.END);
+                            String password = System.console().readLine();
+                            if (getUserPassword(conn, studentID).equals(password)) {
+                                studentMenu(conn, studentID);
+                            } else {
+                                Constants.clear();
+                                System.out.println(Constants.ERROR + "[-] Password Incorrect. Please try again." + Constants.END);
+                            }
                         } else {
+                            Constants.clear();
                             System.out.println(Constants.ERROR + "[-] User not found. Please try again." + Constants.END);
                         }
                         break;
 
                     case 3:
+                        Constants.clear();
                         startMenu = false;
                         break;
 
                     default:
+                        Constants.clear();
                         System.out.println(Constants.ERROR + "[-] Invalid choice. Please try again." + Constants.END);
                 }
             }
 
         } catch (SQLException e) {
+            Constants.clear();
             e.printStackTrace();
 
         } finally {
@@ -91,6 +107,7 @@ public class App extends MenuHandler{
                     conn.close();
                 }
             } catch (SQLException e) {
+                Constants.clear();
                 e.printStackTrace();
             }
         }

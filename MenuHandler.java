@@ -15,6 +15,7 @@ public class MenuHandler extends SQLHandler {
             
             switch (choice) {
                 case 1:
+                    Constants.clear();
                     System.out.println(Constants.DETAIL + "[*] Enter Title:" + Constants.END);
                     String title = System.console().readLine();
                     System.out.println(Constants.DETAIL + "[*] Enter Description:" + Constants.END);
@@ -23,6 +24,7 @@ public class MenuHandler extends SQLHandler {
                     break;
 
                 case 2:
+                    Constants.clear();
                     ResultSet rs = checkRequestStatus(conn, uid);
                     while (rs.next()) {
                         
@@ -38,10 +40,12 @@ public class MenuHandler extends SQLHandler {
                     break;
 
                 case 3:
+                    Constants.clear();
                     loggedIn = false;
                     break;
 
                 default:
+                    Constants.clear();
                     System.out.println(Constants.ERROR + "[-] Invalid choice. Please try again." + Constants.END);
                     break;
             }
@@ -62,6 +66,7 @@ public class MenuHandler extends SQLHandler {
             int uid = 0;
             switch (choice) {
                 case 1:
+                    Constants.clear();
                     System.out.println(Constants.DETAIL + "[*] Enter UID:" + Constants.END);
                     uid = Integer.parseInt(System.console().readLine());
                     System.out.println(Constants.DETAIL + "[*] Enter Name:" + Constants.END);
@@ -76,14 +81,14 @@ public class MenuHandler extends SQLHandler {
                     break;
 
                 case 2:
-                    
+                    Constants.clear();
                     System.out.println("[*] Enter UID:" + Constants.END);
                     uid = Integer.parseInt(System.console().readLine());
                     deleteUser(conn, uid);
                     break;
 
                 case 3:
-                    
+                    Constants.clear();
                     ResultSet rs = checkRequests(conn);
                     while (rs.next()) {
                         System.out.println(Constants.WARNING + "[!] Request ID: " + rs.getInt("id") + Constants.END);
@@ -98,17 +103,21 @@ public class MenuHandler extends SQLHandler {
                     System.out.println(Constants.INFO + "[!] Enter Request ID to reply to, or 0 to return to menu:" + Constants.END);
                     int requestID = Integer.parseInt(System.console().readLine());
                     if (requestID != 0) {
+                        Constants.clear();
                         System.out.println(Constants.DETAIL + "[*] Enter reply:" + Constants.END);
                         String reply = System.console().readLine();
                         replyToRequest(conn, requestID, reply);
                     }
+                    Constants.clear();
                     break;
 
                 case 4:
+                    Constants.clear();
                     loggedIn = false;
                     break;
 
                 default:
+                    Constants.clear();
                     System.out.println(Constants.ERROR + "[-] Invalid choice. Please try again." + Constants.END);
                     break;
             }

@@ -40,7 +40,7 @@ public class SQLHandler {
 
         pstmt.executeUpdate();
         pstmt.close();
-
+        Constants.clear();
         System.out.println(Constants.MESSAGE + "[+] User added." + Constants.END);
     }
 
@@ -52,7 +52,7 @@ public class SQLHandler {
 
         pstmt.executeUpdate();
         pstmt.close();
-
+        Constants.clear();
         System.out.println(Constants.MESSAGE + "[+] User deleted." + Constants.END);
     }
 
@@ -73,7 +73,7 @@ public class SQLHandler {
 
         pstmt.executeUpdate();
         pstmt.close();
-
+        Constants.clear();
         System.out.println(Constants.MESSAGE + "[+] Request updated." + Constants.END);
     }
 
@@ -93,6 +93,24 @@ public class SQLHandler {
         return exists;
     }
 
+    public static String getUserPassword(Connection conn, int uid) throws SQLException {
+        String sql = "SELECT password FROM users WHERE uid = ?";
+
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        pstmt.setInt(1, uid);
+
+        ResultSet rs = pstmt.executeQuery();
+
+        while(rs.next()){
+            return rs.getString("password");
+        }
+
+        rs.close();
+        pstmt.close();
+
+        return null;
+    }
+
     public static void logRequest(Connection conn, int uid, String title, String description) throws SQLException {
         String sql = "INSERT INTO requests (uid, title, description) VALUES (?, ?, ?)";
 
@@ -103,7 +121,7 @@ public class SQLHandler {
 
         pstmt.executeUpdate();
         pstmt.close();
-
+        Constants.clear();
         System.out.println(Constants.INFO + "[+] Request logged." + Constants.END);
     }
 
