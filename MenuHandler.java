@@ -4,14 +4,20 @@ public class MenuHandler extends SQLHandler {
     
     public static void studentMenu(Connection conn, int uid) throws SQLException {
         boolean loggedIn = true;
+        int choice = 0;
         while (loggedIn) {
             
             System.out.println(Constants.WARNING + "[!] Student Menu:" + Constants.END);
             System.out.println(Constants.DETAIL + "[1] Log Request" + Constants.END);
             System.out.println(Constants.DETAIL + "[2] Check Request Status" + Constants.END);
             System.out.println(Constants.DETAIL + "[3] Log out" + Constants.END);
-
-            int choice = Integer.parseInt(System.console().readLine());
+            try {
+                choice = Integer.parseInt(System.console().readLine());
+            } catch (Exception e) {
+                Constants.clear();
+                System.out.println(Constants.ERROR + "[-] choice should be integer only" + Constants.END);
+                continue;
+            }
             
             switch (choice) {
                 case 1:
@@ -54,21 +60,32 @@ public class MenuHandler extends SQLHandler {
     public static void adminMenu(Connection conn) throws SQLException {
         boolean loggedIn = true;
         while (loggedIn) {
-            
+            int choice = 0;
             System.out.println(Constants.INFO + "[*] Admin Menu:" + Constants.END);
             System.out.println(Constants.DETAIL + "[1] Add User" + Constants.END);
             System.out.println(Constants.DETAIL + "[2] Delete User" + Constants.END);
             System.out.println(Constants.DETAIL + "[3] Check Requests" + Constants.END);
             System.out.println(Constants.DETAIL + "[4] Log out" + Constants.END);
-
-            int choice = Integer.parseInt(System.console().readLine());
+            try {
+                choice = Integer.parseInt(System.console().readLine());
+            } catch (Exception e) {
+                Constants.clear();
+                System.out.println(Constants.ERROR + "[-] choice ID should be integer only" + Constants.END);
+                continue;
+            }
             
             int uid = 0;
             switch (choice) {
                 case 1:
                     Constants.clear();
                     System.out.println(Constants.DETAIL + "[*] Enter UID:" + Constants.END);
-                    uid = Integer.parseInt(System.console().readLine());
+                    try {
+                        uid = Integer.parseInt(System.console().readLine());
+                    } catch (Exception e) {
+                        Constants.clear();
+                        System.out.println(Constants.ERROR + "[-] uid should be integer only" + Constants.END);
+                        continue;
+                    }
                     System.out.println(Constants.DETAIL + "[*] Enter Name:" + Constants.END);
                     String name = System.console().readLine();
                     System.out.println(Constants.DETAIL + "[*] Enter Section:" + Constants.END);
@@ -83,11 +100,18 @@ public class MenuHandler extends SQLHandler {
                 case 2:
                     Constants.clear();
                     System.out.println("[*] Enter UID:" + Constants.END);
-                    uid = Integer.parseInt(System.console().readLine());
+                    try {
+                        uid = Integer.parseInt(System.console().readLine());
+                    } catch (Exception e) {
+                        Constants.clear();
+                        System.out.println(Constants.ERROR + "[-] uid should be integer only" + Constants.END);
+                        continue;
+                    }
                     deleteUser(conn, uid);
                     break;
 
                 case 3:
+                    int requestID = 0;
                     Constants.clear();
                     ResultSet rs = checkRequests(conn);
                     while (rs.next()) {
@@ -101,7 +125,13 @@ public class MenuHandler extends SQLHandler {
                     }
                     rs.close();
                     System.out.println(Constants.INFO + "[!] Enter Request ID to reply to, or 0 to return to menu:" + Constants.END);
-                    int requestID = Integer.parseInt(System.console().readLine());
+                    try {
+                        requestID = Integer.parseInt(System.console().readLine());
+                    } catch (Exception e) {
+                        Constants.clear();
+                        System.out.println(Constants.ERROR + "[-] requestID should be integer only" + Constants.END);
+                        continue;
+                    }
                     if (requestID != 0) {
                         Constants.clear();
                         System.out.println(Constants.DETAIL + "[*] Enter reply:" + Constants.END);
